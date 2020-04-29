@@ -41,7 +41,7 @@ def elk_index(elk_index_name):
     return index_tag_full
 
 
-def append_to_file(filename, data_dict):
+def append_to_file(filename, data_dict, type):
     '''
     write to json file formatted for bulk elasticsearch input
     :param filename: name of the output file and data traffic type
@@ -50,7 +50,7 @@ def append_to_file(filename, data_dict):
     :return: index tag to write as line in the output json file
     '''
 
-    index_tag_full = elk_index(filename.split('.')[0])
+    index_tag_full = elk_index(type)
 
     with open(f'{filename}', 'a') as f:
         f.write(json.dumps(index_tag_full, indent=None, sort_keys=False) + "\n")
@@ -98,9 +98,12 @@ def cli(git_auth_token, filename, days_ago):
     :return: None
     """
 
+    # timestamp to be added to the file name
+    filedate = datetime.now().strftime('%Y-%m-%dT%H-%M-%SZ')
+
     # create empty json output files
     for type in ['daily', 'referrer']:
-        with open(f'{type}.json', 'w') as f:
+        with open(f'{type}_output/{type}-{filedate}.json', 'w') as f:
             continue
 
     # input list of orgs and repos
@@ -111,12 +114,15 @@ def cli(git_auth_token, filename, days_ago):
             org_repo_list = org_repo.rstrip().split(',')
             org = org_repo_list[0]
             repo = org_repo_list[1]
+            # type = org_repo_list[2]  --> option to add to the list
 
             print(f'getting stats for {org}/{repo}')
 
             stats_dict = {}
             stats_dict['metrics.github.org'] = org
             stats_dict['metrics.github.repo'] = repo
+            # stats_dict['metric.github.repo.type'] = type
+            # stats_dict['metric.github.repo.url'] = f'https://github.com/{org}/{repo}'
 
             # get views and clones traffic stats
             repo_traffic_views = git_api_query_traffic(git_auth_token, org, repo, 'views')
@@ -124,7 +130,7 @@ def cli(git_auth_token, filename, days_ago):
 
             # set start date for extraction of github query values
             start_date = datetime.now() - timedelta(days=days_ago)
-            stop_date = datetime.now() + timedelta(hours=1)
+            stop_date = datetime.now() - timedelta(minutes=1)
             item_date = start_date
 
             # generate daily stats and write to dict for csv output
@@ -160,7 +166,7 @@ def cli(git_auth_token, filename, days_ago):
                     stats_dict[f'metrics.github.clones.summary.count'] = repo_traffic_clones['count']
                     stats_dict[f'metrics.github.clones.summary.uniques'] = repo_traffic_clones['uniques']
 
-                append_to_file('daily.json', stats_dict)
+                append_to_file(f'daily_output/daily-{filedate}.json', stats_dict, 'daily')
                 item_date = item_date + timedelta(days=1)
 
             # get referrers traffic stats
@@ -176,17 +182,16 @@ def cli(git_auth_token, filename, days_ago):
                 stats_dict['metrics.github.referrer.count'] = item['count']
                 stats_dict['metrics.github.referrer.uniques'] = item['uniques']
 
-                append_to_file('referrer.json', stats_dict)
+                append_to_file(f'referrer_output/referrer-{filedate}.json', stats_dict, 'referrer')
 
     # print out the elasticSearch bulk load curl commands
-    print('\nUse the XDELETE curl command to delete data from the index')
+    print('\nUse curl -XDELETE [url]:[port]/index to delete data from the index')
     print('use the XPOST curl command to load json data to elasticSearch')
     print('add -u with username:password if security features enabled\n')
 
     for type in ['daily', 'referrer']:
-        print(f'curl -XDELETE http://localhost:9200/github-{type}')
         print(
-            f'curl -s -XPOST \'http://{conf.elastic_url_port}/_bulk\' --data-binary @{type}.json -H \"Content-Type: application/x-ndjson\" \n')
+            f'curl -s -XPOST \'http://{conf.elastic_url_port}/_bulk\' --data-binary @{type}_output/{type}-{filedate}.json -H \"Content-Type: application/x-ndjson\" \n')
 
 
 if __name__ == '__main__':
