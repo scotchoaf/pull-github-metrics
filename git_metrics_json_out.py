@@ -35,7 +35,7 @@ def elk_index(elk_index_name):
     index_tag_full = {}
     index_tag_inner = {}
     index_tag_inner['_index'] = f'github-{elk_index_name}'
-    index_tag_inner['_type'] = f'github-{elk_index_name}'
+    index_tag_inner['_type'] = '_doc'
     index_tag_full['index'] = index_tag_inner
 
     return index_tag_full
@@ -137,7 +137,7 @@ def cli(git_auth_token, filename, days_ago):
             while item_date < stop_date:
                 stats_dict['date'] = item_date.strftime('%Y-%m-%dT00:00:00Z')
 
-                # grab clones metrics based on current date interval or set to zero if no entry
+                # grab views metrics based on current date interval or set to zero if no entry
                 date_pos = next((index for (index, d) in enumerate(repo_traffic_views['views']) if
                                  d["timestamp"] == stats_dict['date']), None)
 

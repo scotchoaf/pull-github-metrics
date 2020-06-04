@@ -53,40 +53,35 @@ def git_api_query_traffic(git_auth_token, org, repo, type):
 
 @click.command()
 @click.option("-a", "--git_auth_token", help="git auth token", type=str, default='')
-@click.option("-f", "--filename", help="github traffic type", type=str, default='')
-def cli(git_auth_token, filename):
+@click.option("-o", "--org", help="github org", type=str, default='PaloAltoNetworks')
+@click.option("-r", "--repo", help="github repo", type=str, default='')
+def cli(git_auth_token, org, repo):
     """
     grab github traffic stats and generate csv output
     :param git_token: personal auth token used for API access
-    :param filenamme: csv list of orgs and repos
+    :param org: github org
+    :param repo: github repo
     :return: None
     """
 
-    with open(filename) as f:
-        print('\nreading org and repo list from file\n')
-        for org_repo in f:
-            org_repo_list = org_repo.rstrip().split(',')
-            org = org_repo_list[0]
-            repo = org_repo_list[1]
+    print(f'\npulling data for {org}/{repo}')
+    # get views and clones traffic stats
+    for type in ['views', 'clones']:
+        # get and output traffic data
+        print(f'\n  {type}')
+        repo_traffic = git_api_query_traffic(git_auth_token, org, repo, type)
+        print(f"  14-day count: {repo_traffic['count']}")
+        print(f"  14-day unique: {repo_traffic['uniques']}")
+        print('  daily counts (date, count, unique)')
+        for item in repo_traffic[type]:
+            print(f"    {item['timestamp']}, {item['count']}, {item['uniques']}")
 
-            print(f'\n{org}/{repo}')
-            # get views and clones traffic stats
-            for type in ['views', 'clones']:
-                # get and output traffic data
-                print(f'\n  {type}')
-                repo_traffic = git_api_query_traffic(git_auth_token, org, repo, type)
-                print(f"  14-day count: {repo_traffic['count']}")
-                print(f"  14-day unique: {repo_traffic['uniques']}")
-                print('  daily counts (date, count, unique)')
-                for item in repo_traffic[type]:
-                    print(f"    {item['timestamp']}, {item['count']}, {item['uniques']}")
+    # get referrers traffic stats
+    print(f'\n  Top Referrers (referrer, count, unique')
+    repo_traffic = git_api_query_traffic(git_auth_token, org, repo, 'popular/referrers')
 
-            # get referrers traffic stats
-            print(f'\n  Top Referrers (referrer, count, unique')
-            repo_traffic = git_api_query_traffic(git_auth_token, org, repo, 'popular/referrers')
-
-            for item in repo_traffic:
-                print(f"    {item['referrer']}, {item['count']}, {item['uniques']}")
+    for item in repo_traffic:
+        print(f"    {item['referrer']}, {item['count']}, {item['uniques']}")
 
 if __name__ == '__main__':
     cli()
