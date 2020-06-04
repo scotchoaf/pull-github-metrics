@@ -1,5 +1,12 @@
 # Git Metrics
 
+Two modes:
+
+    * JSON output for bulk loading into Elasticsearch
+    * quick output to screen for single org/repo
+    
+### JSON output mode
+
 read a csv file with a list of github orgs and repos
 output is repo traffic stats for views, clones, and top referrers
 
@@ -7,15 +14,30 @@ Uses a github personal auth token for authentication
 
     python git_metrics_json_out.py -a {auth token} -f {repo list} -d {number of days to look back}
  
-output of `git_metrics_json_out.py` is formatted for bulk loading to elasticsearch using the commands:
+output of `daily-{run date}` and `referrer-{run date}` are formatted for bulk loading to elasticsearch using the commands:
 
 ```angular2
-curl -XDELETE http://localhost:9200/daily
-curl -s -XPOST 'http://localhost:9200/_bulk' --data-binary @daily.json -H "Content-Type: application/x-ndjson" 
 
-curl -XDELETE http://localhost:9200/referrer
+curl -s -XPOST 'http://localhost:9200/_bulk' --data-binary @daily.json -H "Content-Type: application/x-ndjson" 
 curl -s -XPOST 'http://localhost:9200/_bulk' --data-binary @referrer.json -H "Content-Type: application/x-ndjson" 
 
 ```
 
-Only use delete for testing and you wish to delete the existing index and data.
+Use XDELETE in the event you need to delete a specific index in Elasticsearch
+
+```angular2
+
+curl -XDELETE http://localhost:9200/daily
+curl -XDELETE http://localhost:9200/referrer
+```
+
+### Quick output mode
+
+use input values for a quick view and to test access to a org and repo.
+
+    python git_metrics_quick.py -a {auth token} -o {org name} -r {repo name}
+    
+> default org is PaloAltoNetworks
+
+Output display will show view, clone, and referrer data
+
