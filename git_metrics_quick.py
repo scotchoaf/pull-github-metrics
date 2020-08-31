@@ -77,7 +77,7 @@ def cli(git_auth_token, org, repo):
             print(f"    {item['timestamp']}, {item['count']}, {item['uniques']}")
 
     # get referrers traffic stats
-    print(f'\n  Top Referrers (referrer, count, unique')
+    print('\n  Top Referrers (referrer, count, unique')
     repo_traffic = git_api_query_traffic(git_auth_token, org, repo, 'popular/referrers')
 
     for item in repo_traffic:

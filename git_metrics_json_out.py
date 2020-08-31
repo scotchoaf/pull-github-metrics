@@ -142,29 +142,29 @@ def cli(git_auth_token, filename, days_ago):
                                  d["timestamp"] == stats_dict['date']), None)
 
                 if date_pos is not None:
-                    stats_dict[f'metrics.github.views.daily.count'] = repo_traffic_views['views'][date_pos]['count']
-                    stats_dict[f'metrics.github.views.daily.uniques'] = repo_traffic_views['views'][date_pos]['uniques']
+                    stats_dict['metrics.github.views.daily.count'] = repo_traffic_views['views'][date_pos]['count']
+                    stats_dict['metrics.github.views.daily.uniques'] = repo_traffic_views['views'][date_pos]['uniques']
                 else:
-                    stats_dict[f'metrics.github.views.daily.count'] = 0
-                    stats_dict[f'metrics.github.views.daily.uniques'] = 0
+                    stats_dict['metrics.github.views.daily.count'] = 0
+                    stats_dict['metrics.github.views.daily.uniques'] = 0
 
                 # grab clones metrics based on current date interval or set to zero if no entry
                 date_pos = next((index for (index, d) in enumerate(repo_traffic_clones['clones']) if
                                  d["timestamp"] == stats_dict['date']), None)
                 if date_pos is not None:
-                    stats_dict[f'metrics.github.clones.daily.count'] = repo_traffic_clones['clones'][date_pos]['count']
-                    stats_dict[f'metrics.github.clones.daily.uniques'] = repo_traffic_clones['clones'][date_pos][
+                    stats_dict['metrics.github.clones.daily.count'] = repo_traffic_clones['clones'][date_pos]['count']
+                    stats_dict['metrics.github.clones.daily.uniques'] = repo_traffic_clones['clones'][date_pos][
                         'uniques']
                 else:
-                    stats_dict[f'metrics.github.clones.daily.count'] = 0
-                    stats_dict[f'metrics.github.clones.daily.uniques'] = 0
+                    stats_dict['metrics.github.clones.daily.count'] = 0
+                    stats_dict['metrics.github.clones.daily.uniques'] = 0
 
                 if item_date + timedelta(days=1) > stop_date:
                     # 14day summary stats added to the prior day stats
-                    stats_dict[f'metrics.github.views.summary.count'] = repo_traffic_views['count']
-                    stats_dict[f'metrics.github.views.summary.uniques'] = repo_traffic_views['uniques']
-                    stats_dict[f'metrics.github.clones.summary.count'] = repo_traffic_clones['count']
-                    stats_dict[f'metrics.github.clones.summary.uniques'] = repo_traffic_clones['uniques']
+                    stats_dict['metrics.github.views.summary.count'] = repo_traffic_views['count']
+                    stats_dict['metrics.github.views.summary.uniques'] = repo_traffic_views['uniques']
+                    stats_dict['metrics.github.clones.summary.count'] = repo_traffic_clones['count']
+                    stats_dict['metrics.github.clones.summary.uniques'] = repo_traffic_clones['uniques']
 
                 append_to_file(f'daily_output/daily-{filedate}.json', stats_dict, 'daily')
                 item_date = item_date + timedelta(days=1)
@@ -191,7 +191,9 @@ def cli(git_auth_token, filename, days_ago):
 
     for type in ['daily', 'referrer']:
         print(
-            f'curl -s -XPOST \'http://{conf.elastic_url_port}/_bulk\' --data-binary @{type}_output/{type}-{filedate}.json -H \"Content-Type: application/x-ndjson\" \n')
+            f'curl -s -XPOST \'http://{conf.elastic_url_port}/_bulk\' '
+            f'--data-binary @{type}_output/{type}-{filedate}.json '
+            f'-H \"Content-Type: application/x-ndjson\" \n')
 
 
 if __name__ == '__main__':
