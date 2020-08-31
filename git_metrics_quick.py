@@ -15,11 +15,11 @@
 
 # Authors: Scott Shoaf
 
-import requests
-import sys
 import json
+import sys
 
 import click
+import requests
 
 
 def git_api_query_traffic(git_auth_token, org, repo, type):
@@ -38,7 +38,7 @@ def git_api_query_traffic(git_auth_token, org, repo, type):
 
     try:
         git_traffic = requests.get(git_api_url, headers=headers)
-        #print('View stats request posted to github')
+        # print('View stats request posted to github')
         git_traffic.raise_for_status()
     except requests.exceptions.HTTPError:
         print(git_traffic)
@@ -82,6 +82,7 @@ def cli(git_auth_token, org, repo):
 
     for item in repo_traffic:
         print(f"    {item['referrer']}, {item['count']}, {item['uniques']}")
+
 
 if __name__ == '__main__':
     cli()
