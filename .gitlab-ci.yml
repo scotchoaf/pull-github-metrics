@@ -7,6 +7,7 @@ before_script:
   - source venv/bin/activate
   - pip install -r requirements.txt
 
+# basic pylint checks
 flake8:
   script:
     - pip install flake8
